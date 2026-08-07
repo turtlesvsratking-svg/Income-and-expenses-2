@@ -1,199 +1,175 @@
-// カテゴリーの定義
+// カテゴリーの設定
 const INCOME_CATEGORIES = ['Googleアドセンス', 'アフィリエイト', 'Udemy', 'グッズ', 'その他'];
-const EXPENSE_CATEGORY = 'ブログ経費';
-const STORAGE_KEY = 'kamesan_blog_transactions_v4';
+const EXPENSE_CATEGORIES = ['経費'];
 
-let transactions = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+// データ状態の管理
+let transactions = JSON.parse(localStorage.getItem('kame_transactions')) || [];
 
 // DOM要素の取得
-const form = document.getElementById('transaction-form');
-const typeRadios = document.getElementsByName('type');
+const typeSelect = document.getElementById('type');
 const categorySelect = document.getElementById('category');
-const amountInput = document.getElementById('amount');
-const memoInput = document.getElementById('memo');
-const historyList = document.getElementById('history-list');
+const form = document.getElementById('transaction-form');
+const totalIncomeEl = document.getElementById('total-income');
+const totalExpenseEl = document.getElementById('total-expense');
+const netBalanceEl = document.getElementById('net-balance');
+const categoryBreakdownEl = document.getElementById('category-breakdown');
+const historyListEl = document.getElementById('history-list');
+const exportBtn = document.getElementById('export-btn');
+const importFileInput = document.getElementById('import-file');
+const clearBtn = document.getElementById('clear-btn');
 
-// 初期化処理
-document.addEventListener('DOMContentLoaded', () => {
-    updateCategoryOptions('income');
-    render();
-});
-
-// 区分ラジオボタン変更時のイベント
-typeRadios.forEach(radio => {
-    radio.addEventListener('change', (e) => {
-        updateCategoryOptions(e.target.value);
-    });
-});
-
-// カテゴリー選択肢を動的に生成（「オプションなし」を絶対に防ぐロジック）
-function updateCategoryOptions(type = 'income') {
-    if (!categorySelect) return;
-    
-    categorySelect.innerHTML = ''; // 既存選択肢をリセット
-
-    if (type === 'income') {
-        INCOME_CATEGORIES.forEach(cat => {
-            const opt = document.createElement('option');
-            opt.value = cat;
-            opt.textContent = cat;
-            categorySelect.appendChild(opt);
-        });
-    } else {
-        const opt = document.createElement('option');
-        opt.value = EXPENSE_CATEGORY;
-        opt.textContent = EXPENSE_CATEGORY;
-        categorySelect.appendChild(opt);
-    }
+// アプリの初期化
+function init() {
+  updateCategoryOptions();
+  render();
 }
 
-// データ保存
+typeSelect.addEventListener('change', updateCategoryOptions);
+
+// 種別に応じたカテゴリーの切替
+function updateCategoryOptions() {
+  const type = typeSelect.value;
+  const categories = type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+  
+  categorySelect.innerHTML = categories
+    .map(cat => `<option value="${cat}">${cat}</option>`)
+    .join('');
+}
+
+// データの追加処理
 form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const type = Array.from(typeRadios).find(r => r.checked).value;
-    
-    const newTransaction = {
-        id: Date.now(),
-        date: new Date().toLocaleDateString('ja-JP'),
-        type: type,
-        category: categorySelect.value,
-        amount: parseInt(amountInput.value, 10),
-        memo: memoInput.value
-    };
+  e.preventDefault();
+  
+  const type = typeSelect.value;
+  const category = categorySelect.value;
+  const amount = parseInt(document.getElementById('amount').value, 10);
+  const memo = document.getElementById('memo').value.trim();
 
-    transactions.unshift(newTransaction);
-    saveAndRender();
-    
-    amountInput.value = '';
-    memoInput.value = '';
+  if (isNaN(amount) || amount <= 0) return;
+
+  const newTransaction = {
+    id: Date.now(),
+    type,
+    category,
+    amount,
+    memo,
+    date: new Date().toLocaleDateString('ja-JP')
+  };
+
+  transactions.unshift(newTransaction);
+  saveAndRender();
+  
+  document.getElementById('amount').value = '';
+  document.getElementById('memo').value = '';
 });
 
+// 個別データの削除
 function deleteTransaction(id) {
-    if (confirm('この記録を削除しますか？')) {
-        transactions = transactions.filter(item => item.id !== id);
-        saveAndRender();
-    }
+  transactions = transactions.filter(t => t.id !== id);
+  saveAndRender();
 }
 
+// 永続化と画面更新
 function saveAndRender() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(transactions));
-    render();
+  localStorage.setItem('kame_transactions', JSON.stringify(transactions));
+  render();
 }
 
+// 再描画（計算・内訳・履歴）
 function render() {
-    let totalIncome = 0;
-    let totalExpense = 0;
-    const incomeByCategory = {};
+  let totalIncome = 0;
+  let totalExpense = 0;
 
-    INCOME_CATEGORIES.forEach(cat => incomeByCategory[cat] = 0);
+  const categoryTotals = {};
+  INCOME_CATEGORIES.forEach(cat => categoryTotals[cat] = 0);
 
-    transactions.forEach(item => {
-        if (item.type === 'income') {
-            totalIncome += item.amount;
-            if (incomeByCategory[item.category] !== undefined) {
-                incomeByCategory[item.category] += item.amount;
-            }
-        } else {
-            totalExpense += item.amount;
-        }
-    });
-
-    const totalBalance = totalIncome - totalExpense;
-
-    document.getElementById('total-balance').textContent = `¥${totalBalance.toLocaleString()}`;
-    document.getElementById('total-income').textContent = `¥${totalIncome.toLocaleString()}`;
-    document.getElementById('total-expense').textContent = `¥${totalExpense.toLocaleString()}`;
-
-    const categorySummaryEl = document.getElementById('category-summary');
-    categorySummaryEl.innerHTML = '';
-    INCOME_CATEGORIES.forEach(cat => {
-        const itemEl = document.createElement('div');
-        itemEl.className = 'category-item';
-        itemEl.innerHTML = `
-            <div class="name">${cat}</div>
-            <div class="amount">¥${incomeByCategory[cat].toLocaleString()}</div>
-        `;
-        categorySummaryEl.appendChild(itemEl);
-    });
-
-    historyList.innerHTML = '';
-    if (transactions.length === 0) {
-        historyList.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">まだ記録がありません</td></tr>`;
-        return;
+  transactions.forEach(t => {
+    if (t.type === 'income') {
+      totalIncome += t.amount;
+      if (categoryTotals[t.category] !== undefined) {
+        categoryTotals[t.category] += t.amount;
+      }
+    } else {
+      totalExpense += t.amount;
     }
+  });
 
-    transactions.forEach(item => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${item.date}</td>
-            <td class="${item.type === 'income' ? 'badge-income' : 'badge-expense'}">
-                ${item.type === 'income' ? '収入' : '経費'}
-            </td>
-            <td>${item.category}</td>
-            <td style="font-weight: 700;">¥${item.amount.toLocaleString()}</td>
-            <td>${escapeHtml(item.memo)}</td>
-            <td><button class="delete-btn" onclick="deleteTransaction(${item.id})">削除</button></td>
-        `;
-        historyList.appendChild(tr);
-    });
+  const netBalance = totalIncome - totalExpense;
+
+  // 各金額の表示更新
+  totalIncomeEl.textContent = `¥${totalIncome.toLocaleString()}`;
+  totalExpenseEl.textContent = `¥${totalExpense.toLocaleString()}`;
+  netBalanceEl.textContent = `¥${netBalance.toLocaleString()}`;
+
+  // 内訳の更新
+  categoryBreakdownEl.innerHTML = INCOME_CATEGORIES.map(cat => `
+    <div class="category-item">
+      <span class="cat-name">${cat}</span>
+      <span class="cat-amount">¥${categoryTotals[cat].toLocaleString()}</span>
+    </div>
+  `).join('');
+
+  // 履歴の更新
+  historyListEl.innerHTML = transactions.map(t => `
+    <li class="history-item">
+      <div class="history-info">
+        <span class="date">${t.date}</span>
+        <span class="tag">${t.category}</span>
+        <span>${t.memo ? t.memo : ''}</span>
+      </div>
+      <div>
+        <strong style="color: ${t.type === 'income' ? 'var(--income-color)' : 'var(--expense-color)'}">
+          ${t.type === 'income' ? '+' : '-'}¥${t.amount.toLocaleString()}
+        </strong>
+        <button class="delete-btn" onclick="deleteTransaction(${t.id})">✕</button>
+      </div>
+    </li>
+  `).join('');
 }
 
-function escapeHtml(str) {
-    if (!str) return '';
-    return str.replace(/[&<>"']/g, (m) => ({
-        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-    })[m]);
-}
-
-// CSVエクスポート
-document.getElementById('export-btn').addEventListener('click', () => {
-    if (transactions.length === 0) {
-        alert('保存するデータがありません。');
-        return;
-    }
-    let csvContent = 'data:text/csv;charset=utf-8,\uFEFFid,date,type,category,amount,memo\n';
-    transactions.forEach(t => {
-        csvContent += `${t.id},${t.date},${t.type},${t.category},${t.amount},"${t.memo}"\n`;
-    });
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `blog_balance_${new Date().toISOString().slice(0,10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+// バックアップファイル（JSON）のダウンロード
+exportBtn.addEventListener('click', () => {
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(transactions, null, 2));
+  const downloadAnchor = document.createElement('a');
+  downloadAnchor.setAttribute("href", dataStr);
+  downloadAnchor.setAttribute("download", `kame_balance_backup_${new Date().toISOString().slice(0,10)}.json`);
+  document.body.appendChild(downloadAnchor);
+  downloadAnchor.click();
+  downloadAnchor.remove();
 });
 
-// CSVインポート
-document.getElementById('import-file').addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+// JSONファイルからの復元
+importFileInput.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = function(evt) {
-        try {
-            const lines = evt.target.result.split('\n');
-            const newTransactions = [];
-            for (let i = 1; i < lines.length; i++) {
-                if (!lines[i].trim()) continue;
-                const cols = lines[i].split(',');
-                newTransactions.push({
-                    id: Number(cols[0]),
-                    date: cols[1],
-                    type: cols[2],
-                    category: cols[3],
-                    amount: Number(cols[4]),
-                    memo: cols[5] ? cols[5].replace(/"/g, '') : ''
-                });
-            }
-            if (confirm('現在のデータを上書きして復元しますか？')) {
-                transactions = newTransactions;
-                saveAndRender();
-                alert('復元が完了しました。');
-            }
-        } catch (err) {
-            alert('CSVの読み込みに失敗しました。');
+  const reader = new FileReader();
+  reader.onload = function(event) {
+    try {
+      const importedData = JSON.parse(event.target.result);
+      if (Array.isArray(importedData)) {
+        if (confirm('現在のデータを上書きして復元しますか？')) {
+          transactions = importedData;
+          saveAndRender();
+          alert('データの復元が完了しました。');
         }
-    };
-    reader.readAsText(file);
+      } else {
+        alert('無効なファイル形式です。');
+      }
+    } catch (err) {
+      alert('ファイルの読み込みに失敗しました。');
+    }
+  };
+  reader.readAsText(file);
 });
+
+// 全データのクリア
+clearBtn.addEventListener('click', () => {
+  if (confirm('すべての履歴を消去しますか？この操作は取り消せません。')) {
+    transactions = [];
+    saveAndRender();
+  }
+});
+
+// アプリの起動
+init();
