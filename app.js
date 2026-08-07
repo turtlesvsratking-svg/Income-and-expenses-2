@@ -1,9 +1,14 @@
-// カテゴリー定義
+// カテゴリー体系定義
 const INCOME_CATEGORIES = ['Googleアドセンス', 'アフィリエイト', 'Udemy', 'グッズ', 'その他'];
 const EXPENSE_CATEGORIES = ['経費'];
 
-// Chart.js パレット
+// Chart.js カラーセット
 const CHART_COLORS = ['#2e7d32', '#42a5f5', '#ab47bc', '#ffa726', '#8d6e63'];
+
+// 状態管理変数
+let transactions = JSON.parse(localStorage.getItem('kame_transactions')) || [];
+let gasUrl = localStorage.getItem('kame_gas_url') || '';
+let incomeChart = null;
 
 // DOM要素参照
 const typeSelect = document.getElementById('type');
@@ -19,27 +24,17 @@ const importFileInput = document.getElementById('import-file');
 const clearBtn = document.getElementById('clear-btn');
 const gasUrlInput = document.getElementById('gas-url');
 
-// 状態管理
-let transactions = JSON.parse(localStorage.getItem('kame_transactions')) || [];
-let gasUrl = localStorage.getItem('kame_gas_url') || gasUrlInput.value.trim();
-let incomeChart = null;
-
-// 初期化
+// 初期化処理
 function init() {
-  // LocalStorageに保存がなければ、HTML埋め込み初期値をセット
-  if (!localStorage.getItem('kame_gas_url') && gasUrlInput.value) {
-    gasUrl = gasUrlInput.value.trim();
-    localStorage.setItem('kame_gas_url', gasUrl);
-  } else {
+  if (gasUrl) {
     gasUrlInput.value = gasUrl;
   }
-
   updateCategoryOptions();
   initChart();
   render();
 }
 
-// GAS URLが変更された場合
+// GAS URL保持処理
 gasUrlInput.addEventListener('change', (e) => {
   gasUrl = e.target.value.trim();
   localStorage.setItem('kame_gas_url', gasUrl);
@@ -56,7 +51,7 @@ function updateCategoryOptions() {
     .join('');
 }
 
-// 新規データの追加
+// 新規データの追加登録
 form.addEventListener('submit', (e) => {
   e.preventDefault();
   
@@ -79,7 +74,7 @@ form.addEventListener('submit', (e) => {
   transactions.unshift(newTransaction);
   saveAndRender();
 
-  // GASへバックアップ送信
+  // GASバックアップ呼び出し
   if (gasUrl) {
     syncToGas({ action: 'add', data: newTransaction });
   }
@@ -88,7 +83,7 @@ form.addEventListener('submit', (e) => {
   document.getElementById('memo').value = '';
 });
 
-// データ削除
+// データの削除
 window.deleteTransaction = function(id) {
   const target = transactions.find(t => t.id === id);
   transactions = transactions.filter(t => t.id !== id);
@@ -127,7 +122,7 @@ function initChart() {
   });
 }
 
-// 画面再描画
+// UI再描画ロジック
 function render() {
   let totalIncome = 0;
   let totalExpense = 0;
@@ -152,13 +147,13 @@ function render() {
   totalExpenseEl.textContent = `¥${totalExpense.toLocaleString()}`;
   netBalanceEl.textContent = `¥${netBalance.toLocaleString()}`;
 
-  // グラフ更新
+  // グラフデータ更新
   if (incomeChart) {
     incomeChart.data.datasets[0].data = INCOME_CATEGORIES.map(cat => categoryTotals[cat]);
     incomeChart.update();
   }
 
-  // カテゴリー内訳表示
+  // カテゴリー別サマリー更新
   categoryBreakdownEl.innerHTML = INCOME_CATEGORIES.map((cat, index) => `
     <div class="category-item" style="border-top: 3px solid ${CHART_COLORS[index]}">
       <span class="cat-name">${cat}</span>
@@ -166,7 +161,7 @@ function render() {
     </div>
   `).join('');
 
-  // 履歴更新
+  // 履歴リスト更新
   historyListEl.innerHTML = transactions.map(t => `
     <li class="history-item">
       <div class="history-info">
