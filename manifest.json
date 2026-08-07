@@ -1,0 +1,16 @@
+{
+  "short_name": "収支マネージャー",
+  "name": "ブログ収支マネージャー | おしえてかめさん",
+  "icons": [
+    {
+      "src": "./4711.png",
+      "type": "image/png",
+      "sizes": "192x192 512x512"
+    }
+  ],
+  "start_url": "./index.html",
+  "background_color": "#f4f7f6",
+  "theme_color": "#2e7d32",
+  "display": "standalone",
+  "orientation": "portrait"
+}
