@@ -40,15 +40,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
   margin-bottom: 4px;
-}
-
-.app-icon-img {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  object-fit: cover;
 }
 
 .app-header h1 {
@@ -70,7 +62,7 @@ body {
   box-shadow: var(--shadow);
 }
 
-/* 収支サマリー */
+/* サマリーカード */
 .summary-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -99,7 +91,7 @@ body {
 .summary-card.expense .amount { color: var(--expense-color); }
 .summary-card.balance .amount { color: var(--primary-color); }
 
-/* GAS設定 */
+/* GAS設定カード */
 .config-card summary {
   cursor: pointer;
   font-size: 0.9rem;
