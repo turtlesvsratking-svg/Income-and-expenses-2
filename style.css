@@ -3,7 +3,7 @@
   --card-bg: #ffffff;
   --text-main: #2c3e50;
   --text-sub: #7f8c8d;
-  --primary-color: #2e7d32; /* 信頼感と温かみのある深緑 */
+  --primary-color: #2e7d32; /* 亀を想起させる深緑 */
   --primary-light: #e8f5e9;
   --income-color: #1b5e20;
   --expense-color: #c62828;
@@ -33,7 +33,7 @@ body {
 
 .app-header {
   text-align: center;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .header-logo {
@@ -70,7 +70,7 @@ body {
   box-shadow: var(--shadow);
 }
 
-/* 収支サマリー */
+/* サマリーカード */
 .summary-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -98,7 +98,31 @@ body {
 .summary-card.expense .amount { color: var(--expense-color); }
 .summary-card.balance .amount { color: var(--primary-color); }
 
-/* 入力フォーム */
+/* GAS設定カード */
+.config-card summary {
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--primary-color);
+}
+
+.config-content {
+  margin-top: 12px;
+}
+
+.config-content label {
+  display: block;
+  font-size: 0.8rem;
+  margin-bottom: 4px;
+}
+
+.help-text {
+  font-size: 0.75rem;
+  color: var(--text-sub);
+  margin-top: 4px;
+}
+
+/* フォーム */
 .form-card h2, .breakdown-card h2, .history-header h2 {
   font-size: 1.1rem;
   margin-bottom: 16px;
@@ -159,11 +183,26 @@ input:focus, select:focus {
   cursor: pointer;
 }
 
-/* 内訳 */
+/* グラフ ＆ 内訳エリア */
+.analytics-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.chart-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 260px;
+  height: 260px;
+}
+
 .category-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
   gap: 12px;
+  width: 100%;
 }
 
 .category-item {
@@ -185,7 +224,7 @@ input:focus, select:focus {
   color: var(--text-main);
 }
 
-/* 履歴リスト */
+/* 履歴 */
 .history-header {
   display: flex;
   justify-content: space-between;
