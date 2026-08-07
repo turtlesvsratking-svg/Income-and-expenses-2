@@ -2,15 +2,10 @@
 const INCOME_CATEGORIES = ['Googleアドセンス', 'アフィリエイト', 'Udemy', 'グッズ', 'その他'];
 const EXPENSE_CATEGORIES = ['経費'];
 
-// グラフ用カラーパレット
+// Chart.js パレット
 const CHART_COLORS = ['#2e7d32', '#42a5f5', '#ab47bc', '#ffa726', '#8d6e63'];
 
-// 状態管理
-let transactions = JSON.parse(localStorage.getItem('kame_transactions')) || [];
-let gasUrl = localStorage.getItem('kame_gas_url') || '';
-let incomeChart = null;
-
-// DOM要素
+// DOM要素参照
 const typeSelect = document.getElementById('type');
 const categorySelect = document.getElementById('category');
 const form = document.getElementById('transaction-form');
@@ -24,15 +19,27 @@ const importFileInput = document.getElementById('import-file');
 const clearBtn = document.getElementById('clear-btn');
 const gasUrlInput = document.getElementById('gas-url');
 
+// 状態管理
+let transactions = JSON.parse(localStorage.getItem('kame_transactions')) || [];
+let gasUrl = localStorage.getItem('kame_gas_url') || gasUrlInput.value.trim();
+let incomeChart = null;
+
 // 初期化
 function init() {
-  gasUrlInput.value = gasUrl;
+  // LocalStorageに保存がなければ、HTML埋め込み初期値をセット
+  if (!localStorage.getItem('kame_gas_url') && gasUrlInput.value) {
+    gasUrl = gasUrlInput.value.trim();
+    localStorage.setItem('kame_gas_url', gasUrl);
+  } else {
+    gasUrlInput.value = gasUrl;
+  }
+
   updateCategoryOptions();
   initChart();
   render();
 }
 
-// GAS URLの保存
+// GAS URLが変更された場合
 gasUrlInput.addEventListener('change', (e) => {
   gasUrl = e.target.value.trim();
   localStorage.setItem('kame_gas_url', gasUrl);
@@ -49,8 +56,8 @@ function updateCategoryOptions() {
     .join('');
 }
 
-// データ追加
-form.addEventListener('submit', async (e) => {
+// 新規データの追加
+form.addEventListener('submit', (e) => {
   e.preventDefault();
   
   const type = typeSelect.value;
@@ -81,7 +88,8 @@ form.addEventListener('submit', async (e) => {
   document.getElementById('memo').value = '';
 });
 
-function deleteTransaction(id) {
+// データ削除
+window.deleteTransaction = function(id) {
   const target = transactions.find(t => t.id === id);
   transactions = transactions.filter(t => t.id !== id);
   saveAndRender();
@@ -89,14 +97,14 @@ function deleteTransaction(id) {
   if (gasUrl && target) {
     syncToGas({ action: 'delete', id: target.id });
   }
-}
+};
 
 function saveAndRender() {
   localStorage.setItem('kame_transactions', JSON.stringify(transactions));
   render();
 }
 
-// Chart.js の初期化
+// Chart.js 初期化
 function initChart() {
   const ctx = document.getElementById('income-chart').getContext('2d');
   incomeChart = new Chart(ctx, {
@@ -119,6 +127,7 @@ function initChart() {
   });
 }
 
+// 画面再描画
 function render() {
   let totalIncome = 0;
   let totalExpense = 0;
@@ -149,7 +158,7 @@ function render() {
     incomeChart.update();
   }
 
-  // 内訳更新
+  // カテゴリー内訳表示
   categoryBreakdownEl.innerHTML = INCOME_CATEGORIES.map((cat, index) => `
     <div class="category-item" style="border-top: 3px solid ${CHART_COLORS[index]}">
       <span class="cat-name">${cat}</span>
@@ -169,13 +178,13 @@ function render() {
         <strong style="color: ${t.type === 'income' ? 'var(--income-color)' : 'var(--expense-color)'}">
           ${t.type === 'income' ? '+' : '-'}¥${t.amount.toLocaleString()}
         </strong>
-        <button class="delete-btn" onclick="deleteTransaction(${t.id})">✕</button>
+        <button class="delete-btn" onclick="deleteTransaction(${t.id})" aria-label="削除">✕</button>
       </div>
     </li>
   `).join('');
 }
 
-// GASへの自動同期送信関数
+// GASへの非同期データ送信
 async function syncToGas(payload) {
   try {
     await fetch(gasUrl, {
@@ -194,7 +203,7 @@ exportBtn.addEventListener('click', () => {
   const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(transactions, null, 2));
   const downloadAnchor = document.createElement('a');
   downloadAnchor.setAttribute("href", dataStr);
-  downloadAnchor.setAttribute("download", `kame_balance_backup_${new Date().toISOString().slice(0,10)}.json`);
+  downloadAnchor.setAttribute("download", `kame_balance_${new Date().toISOString().slice(0,10)}.json`);
   document.body.appendChild(downloadAnchor);
   downloadAnchor.click();
   downloadAnchor.remove();
@@ -210,14 +219,14 @@ importFileInput.addEventListener('change', (e) => {
     try {
       const importedData = JSON.parse(event.target.result);
       if (Array.isArray(importedData)) {
-        if (confirm('現在のデータを上書きして復元しますか？')) {
+        if (confirm('既存のデータを上書きして復元しますか？')) {
           transactions = importedData;
           saveAndRender();
           if (gasUrl) syncToGas({ action: 'bulk', data: transactions });
           alert('データの復元が完了しました。');
         }
       } else {
-        alert('無効なファイル形式です。');
+        alert('不正なファイル形式です。');
       }
     } catch (err) {
       alert('ファイルの読み込みに失敗しました。');
@@ -226,7 +235,7 @@ importFileInput.addEventListener('change', (e) => {
   reader.readAsText(file);
 });
 
-// 全消去
+// データ全消去
 clearBtn.addEventListener('click', () => {
   if (confirm('すべての履歴を消去しますか？この操作は取り消せません。')) {
     transactions = [];
@@ -235,4 +244,5 @@ clearBtn.addEventListener('click', () => {
   }
 });
 
+// 初期化実行
 init();
