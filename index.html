@@ -5,21 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ブログ収支マネージャー | おしえてかめさん</title>
 
-  <!-- PWA & Icon Settings -->
-  <link rel="icon" href="./4711.png" type="image/png">
-  <link rel="apple-touch-icon" href="./4711.png">
+  <!-- PWA & Icon Settings (IMG_4711.png に指定統一) -->
+  <link rel="icon" href="./IMG_4711.png" type="image/png">
+  <link rel="shortcut icon" href="./IMG_4711.png" type="image/png">
+  <link rel="apple-touch-icon" href="./IMG_4711.png">
   <link rel="manifest" href="./manifest.json">
+  
   <meta name="theme-color" content="#2e7d32">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="収支マネージャー">
 
-  <!-- Typography & Styles -->
+  <!-- Style & Fonts -->
+  <link rel="stylesheet" href="./style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./style.css">
-
+  
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -27,13 +29,12 @@
   <div class="app-container">
     <header class="app-header">
       <div class="header-logo">
-        <img src="./4711.png" alt="おしえてかめさん" class="app-icon-img">
         <h1>ブログ収支マネージャー</h1>
       </div>
       <p class="subtitle">通算収支のリアルタイム集計・自動解析ツール</p>
     </header>
 
-    <!-- 収支サマリー -->
+    <!-- 収支サマリーカード -->
     <section class="summary-grid" aria-label="収支概要">
       <div class="card summary-card income">
         <h2>総収入</h2>
@@ -49,14 +50,19 @@
       </div>
     </section>
 
-    <!-- GAS連携設定 -->
+    <!-- GAS連携設定パネル -->
     <section class="card config-card">
       <details>
         <summary>⚙️ Googleスプレッドシート自動連携設定（GAS）</summary>
         <div class="config-content">
           <label for="gas-url">GAS Web App URL:</label>
-          <input type="url" id="gas-url" placeholder="https://script.google.com/macros/s/.../exec">
-          <p class="help-text">※URLを設定すると、データの追記・削除時にクラウドへ自動送信されます。</p>
+          <input 
+            type="url" 
+            id="gas-url" 
+            value="https://script.google.com/macros/s/AKfycbw7FUZq0FQzV26jqsrfk14FpmbiUisF1Zw6zszvMirJk-MUuP6hthBBKim3zz2JdEBb/exec" 
+            placeholder="https://script.google.com/macros/s/.../exec"
+          >
+          <p class="help-text">※設定されたスプレッドシートへ自動同期されます（変更・上書きも可能）。</p>
         </div>
       </details>
     </section>
@@ -96,7 +102,7 @@
       </form>
     </section>
 
-    <!-- グラフ＆カテゴリー別分析 -->
+    <!-- グラフ ＆ カテゴリー別分析 -->
     <section class="card breakdown-card">
       <h2>収入内訳・比率分析</h2>
       <div class="analytics-container">
@@ -104,12 +110,12 @@
           <canvas id="income-chart"></canvas>
         </div>
         <div class="category-grid" id="category-breakdown">
-          <!-- JSで動的にレンダリング -->
+          <!-- JSで動的に生成 -->
         </div>
       </div>
     </section>
 
-    <!-- 履歴・データ操作 -->
+    <!-- 取引履歴 ＆ データ管理 -->
     <section class="card history-card">
       <div class="history-header">
         <h2>取引履歴</h2>
@@ -123,12 +129,12 @@
         </div>
       </div>
       <ul id="history-list" class="history-list">
-        <!-- JSで動的にレンダリング -->
+        <!-- JSで動的に生成 -->
       </ul>
     </section>
 
     <footer class="app-footer">
-      <p>&copy; おしえてかめさん - 医療・研究・Web開発コンテンツ</p>
+      <p>&copy; おしえてかめさん - ブログ運営ツール</p>
     </footer>
   </div>
 
