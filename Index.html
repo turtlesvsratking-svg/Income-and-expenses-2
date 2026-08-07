@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ブログ収支 Dashboard | おしえてかめさん</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- ファビコン & PWA用設定 -->
+    <link rel="apple-touch-icon" href="./images/IMG_4711.png">
+    <link rel="icon" type="image/png" href="./images/IMG_4711.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="収支管理">
+
+    <!-- キャッシュ対策用バージョンパラメータ -->
+    <link rel="stylesheet" href="./css/style.css?v=1.0.0">
+</head>
+<body>
+    <header class="header">
+        <div class="container header-inner">
+            <div class="brand">
+                <span class="brand-icon">🐢</span>
+                <div>
+                    <h1>ブログ収支 Dashboard</h1>
+                    <p class="subtitle">成果をわかりやすく・美しく記録</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- サマリーカード -->
+        <section class="summary-grid">
+            <div class="card summary-card balance">
+                <span class="card-label">累計収支（利益）</span>
+                <p id="total-balance" class="card-value">¥0</p>
+            </div>
+            <div class="card summary-card income">
+                <span class="card-label">累計収入</span>
+                <p id="total-income" class="card-value">¥0</p>
+            </div>
+            <div class="card summary-card expense">
+                <span class="card-label">累計経費</span>
+                <p id="total-expense" class="card-value">¥0</p>
+            </div>
+        </section>
+
+        <!-- カテゴリー別内訳 -->
+        <section class="card mb-large">
+            <div class="card-header">
+                <h2>📊 収入カテゴリー別内訳</h2>
+            </div>
+            <div id="category-summary" class="category-grid">
+                <!-- JSで動的生成 -->
+            </div>
+        </section>
+
+        <div class="content-grid">
+            <!-- 入力フォーム -->
+            <section class="card">
+                <div class="card-header">
+                    <h2>✍️ 収支の記録</h2>
+                </div>
+                <form id="transaction-form">
+                    <div class="form-group">
+                        <label class="form-label">区分</label>
+                        <div class="type-toggle">
+                            <input type="radio" id="type-income" name="type" value="income" checked>
+                            <label for="type-income" class="toggle-btn income-btn">収入</label>
+                            
+                            <input type="radio" id="type-expense" name="type" value="expense">
+                            <label for="type-expense" class="toggle-btn expense-btn">経費</label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="category" class="form-label">カテゴリー</label>
+                        <select id="category" class="form-control" required>
+                            <!-- JSで自動挿入 -->
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="amount" class="form-label">金額 (円)</label>
+                        <input type="number" id="amount" class="form-control" placeholder="例: 10000" min="1" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="memo" class="form-label">メモ（任意）</label>
+                        <input type="text" id="memo" class="form-control" placeholder="例: ○月確定分、サーバー代など">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">記録を追加する</button>
+                </form>
+            </section>
+
+            <!-- バックアップ・復元 -->
+            <section class="card">
+                <div class="card-header">
+                    <h2>💾 バックアップと復元</h2>
+                </div>
+                <p class="card-desc">データはブラウザに自動保存されます。バックアップや移行時はCSVを出力してください。</p>
+                <div class="backup-actions">
+                    <button id="export-btn" class="btn btn-secondary">CSVファイルを保存</button>
+                    <label class="btn btn-outline">
+                        CSVファイルを読み込む
+                        <input type="file" id="import-file" accept=".csv" style="display: none;">
+                    </label>
+                </div>
+            </section>
+        </div>
+
+        <!-- 取引履歴 -->
+        <section class="card mt-large">
+            <div class="card-header">
+                <h2>📜 取引履歴</h2>
+            </div>
+            <div class="table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>日付</th>
+                            <th>区分</th>
+                            <th>カテゴリー</th>
+                            <th>金額</th>
+                            <th>メモ</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-list">
+                        <!-- JSで動的生成 -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <!-- キャッシュ対策用バージョンパラメータ -->
+    <script src="./js/app.js?v=1.0.0"></script>
+</body>
+</html>
