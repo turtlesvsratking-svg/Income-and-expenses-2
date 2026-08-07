@@ -70,7 +70,7 @@ body {
   box-shadow: var(--shadow);
 }
 
-/* サマリーカード */
+/* 収支サマリー */
 .summary-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -99,7 +99,7 @@ body {
 .summary-card.expense .amount { color: var(--expense-color); }
 .summary-card.balance .amount { color: var(--primary-color); }
 
-/* GAS設定カード */
+/* GAS設定 */
 .config-card summary {
   cursor: pointer;
   font-size: 0.9rem;
