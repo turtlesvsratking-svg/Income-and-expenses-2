@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ブログ収支マネージャー | おしえてかめさん</title>
 
-  <!-- PWA & ホーム画面アイコン設定 (4711画像) -->
+  <!-- PWA & ホーム画面アイコン設定 -->
   <link rel="icon" href="./4711.png" type="image/png">
   <link rel="apple-touch-icon" href="./4711.png">
   <link rel="manifest" href="./manifest.json">
@@ -19,6 +19,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <!-- Chart.js (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
   <div class="app-container">
@@ -27,7 +29,7 @@
         <img src="./4711.png" alt="アプリアイコン" class="app-icon-img">
         <h1>ブログ収支マネージャー</h1>
       </div>
-      <p class="subtitle">通算収支をリアルタイムに集計・管理</p>
+      <p class="subtitle">通算収支をリアルタイムに集計・解析</p>
     </header>
 
     <!-- 収支サマリーカード -->
@@ -46,6 +48,18 @@
       </div>
     </section>
 
+    <!-- GAS連携設定パネル -->
+    <section class="card config-card">
+      <details>
+        <summary>⚙️ スプレッドシート自動連携設定（GAS）</summary>
+        <div class="config-content">
+          <label for="gas-url">GAS Web App URL:</label>
+          <input type="url" id="gas-url" placeholder="https://script.google.com/macros/s/.../exec">
+          <p class="help-text">※URLを設定すると、データの追加・消去時にスプレッドシートへ自動同期されます。</p>
+        </div>
+      </details>
+    </section>
+
     <!-- 入力フォーム -->
     <section class="card form-card">
       <h2>新規データの追加</h2>
@@ -61,7 +75,7 @@
           <div class="form-group">
             <label for="category">カテゴリー</label>
             <select id="category" required>
-              <!-- JSで動的に切替 -->
+              <!-- JSで動的に変更 -->
             </select>
           </div>
         </div>
@@ -73,19 +87,24 @@
           </div>
           <div class="form-group">
             <label for="memo">メモ (任意)</label>
-            <input type="text" id="memo" placeholder="例: 8月分振込、サーバー代など">
+            <input type="text" id="memo" placeholder="例: 8月分振込、書籍購入など">
           </div>
         </div>
 
-        <button type="submit" class="btn btn-primary">追加する</button>
+        <button type="submit" class="btn btn-primary" id="submit-btn">追加する</button>
       </form>
     </section>
 
-    <!-- カテゴリー別内訳 -->
+    <!-- 収入分析（グラフ ＆ カテゴリー別内訳） -->
     <section class="card breakdown-card">
-      <h2>収入内訳</h2>
-      <div class="category-grid" id="category-breakdown">
-        <!-- JSで動的に生成 -->
+      <h2>収入割合・内訳</h2>
+      <div class="analytics-container">
+        <div class="chart-wrapper">
+          <canvas id="income-chart"></canvas>
+        </div>
+        <div class="category-grid" id="category-breakdown">
+          <!-- JSで動的に生成 -->
+        </div>
       </div>
     </section>
 
