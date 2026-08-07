@@ -2,8 +2,8 @@
   --bg-color: #f4f7f6;
   --card-bg: #ffffff;
   --text-main: #2c3e50;
-  --text-sub: #7f8c8d;
-  --primary-color: #2e7d32; /* 亀を想起させる深緑 */
+  --text-sub: #6c757d;
+  --primary-color: #2e7d32;
   --primary-light: #e8f5e9;
   --income-color: #1b5e20;
   --expense-color: #c62828;
@@ -23,7 +23,7 @@ body {
   background-color: var(--bg-color);
   color: var(--text-main);
   line-height: 1.6;
-  padding: 20px;
+  padding: 20px 12px;
 }
 
 .app-container {
@@ -33,7 +33,7 @@ body {
 
 .app-header {
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .header-logo {
@@ -45,9 +45,9 @@ body {
 }
 
 .app-icon-img {
-  width: 38px;
-  height: 38px;
-  border-radius: 8px;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
   object-fit: cover;
 }
 
@@ -73,7 +73,7 @@ body {
 /* サマリーカード */
 .summary-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 16px;
   margin-bottom: 20px;
 }
@@ -83,14 +83,15 @@ body {
   margin-bottom: 0;
 }
 
-.summary-card h3 {
+.summary-card h2 {
   font-size: 0.85rem;
   color: var(--text-sub);
-  margin-bottom: 8px;
+  margin-bottom: 6px;
+  font-weight: 500;
 }
 
 .summary-card .amount {
-  font-size: 1.5rem;
+  font-size: 1.6rem;
   font-weight: 700;
 }
 
@@ -112,14 +113,14 @@ body {
 
 .config-content label {
   display: block;
-  font-size: 0.8rem;
-  margin-bottom: 4px;
+  font-size: 0.85rem;
+  margin-bottom: 6px;
 }
 
 .help-text {
   font-size: 0.75rem;
   color: var(--text-sub);
-  margin-top: 4px;
+  margin-top: 6px;
 }
 
 /* フォーム */
@@ -146,7 +147,7 @@ body {
   display: block;
   font-size: 0.85rem;
   font-weight: 500;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 input, select {
@@ -157,6 +158,7 @@ input, select {
   font-size: 1rem;
   outline: none;
   transition: border-color 0.2s;
+  background-color: #fff;
 }
 
 input:focus, select:focus {
@@ -167,15 +169,15 @@ input:focus, select:focus {
   padding: 10px 16px;
   border: none;
   border-radius: 6px;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
   transition: opacity 0.2s;
 }
 
-.btn:hover { opacity: 0.85; }
-.btn-primary { background-color: var(--primary-color); color: #fff; width: 100%; }
-.btn-secondary { background-color: #e0e0e0; color: var(--text-main); font-size: 0.8rem; }
+.btn:hover { opacity: 0.88; }
+.btn-primary { background-color: var(--primary-color); color: #ffffff; width: 100%; font-size: 1rem; }
+.btn-secondary { background-color: #e9ecef; color: var(--text-main); font-size: 0.8rem; }
 .btn-danger { background-color: #ffebee; color: var(--expense-color); font-size: 0.8rem; }
 
 .import-label {
@@ -183,7 +185,7 @@ input:focus, select:focus {
   cursor: pointer;
 }
 
-/* グラフ ＆ 内訳エリア */
+/* 分析エリア */
 .analytics-container {
   display: flex;
   flex-direction: column;
@@ -194,8 +196,8 @@ input:focus, select:focus {
 .chart-wrapper {
   position: relative;
   width: 100%;
-  max-width: 260px;
-  height: 260px;
+  max-width: 240px;
+  height: 240px;
 }
 
 .category-grid {
@@ -230,7 +232,7 @@ input:focus, select:focus {
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 12px;
   margin-bottom: 16px;
 }
 
@@ -241,7 +243,7 @@ input:focus, select:focus {
 
 .history-list {
   list-style: none;
-  max-height: 300px;
+  max-height: 320px;
   overflow-y: auto;
 }
 
@@ -249,9 +251,9 @@ input:focus, select:focus {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px;
+  padding: 12px 8px;
   border-bottom: 1px solid var(--border-color);
-  font-size: 0.88rem;
+  font-size: 0.9rem;
 }
 
 .history-item:last-child { border-bottom: none; }
@@ -272,7 +274,7 @@ input:focus, select:focus {
   color: var(--text-sub);
   cursor: pointer;
   font-size: 1rem;
-  margin-left: 10px;
+  margin-left: 12px;
 }
 
 .delete-btn:hover { color: var(--expense-color); }
@@ -281,10 +283,10 @@ input:focus, select:focus {
   text-align: center;
   font-size: 0.8rem;
   color: var(--text-sub);
-  margin-top: 20px;
+  margin-top: 24px;
 }
 
 @media (max-width: 600px) {
-  body { padding: 12px; }
   .history-header { flex-direction: column; align-items: flex-start; }
+  .data-actions { width: 100%; justify-content: flex-start; }
 }
