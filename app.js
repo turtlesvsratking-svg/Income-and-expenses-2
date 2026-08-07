@@ -1,11 +1,16 @@
-// カテゴリーの設定
+// カテゴリー定義
 const INCOME_CATEGORIES = ['Googleアドセンス', 'アフィリエイト', 'Udemy', 'グッズ', 'その他'];
 const EXPENSE_CATEGORIES = ['経費'];
 
-// データ状態の管理
-let transactions = JSON.parse(localStorage.getItem('kame_transactions')) || [];
+// グラフ用カラーパレット
+const CHART_COLORS = ['#2e7d32', '#42a5f5', '#ab47bc', '#ffa726', '#8d6e63'];
 
-// DOM要素の取得
+// 状態管理
+let transactions = JSON.parse(localStorage.getItem('kame_transactions')) || [];
+let gasUrl = localStorage.getItem('kame_gas_url') || '';
+let incomeChart = null;
+
+// DOM要素
 const typeSelect = document.getElementById('type');
 const categorySelect = document.getElementById('category');
 const form = document.getElementById('transaction-form');
@@ -17,16 +22,24 @@ const historyListEl = document.getElementById('history-list');
 const exportBtn = document.getElementById('export-btn');
 const importFileInput = document.getElementById('import-file');
 const clearBtn = document.getElementById('clear-btn');
+const gasUrlInput = document.getElementById('gas-url');
 
-// アプリの初期化
+// 初期化
 function init() {
+  gasUrlInput.value = gasUrl;
   updateCategoryOptions();
+  initChart();
   render();
 }
 
+// GAS URLの保存
+gasUrlInput.addEventListener('change', (e) => {
+  gasUrl = e.target.value.trim();
+  localStorage.setItem('kame_gas_url', gasUrl);
+});
+
 typeSelect.addEventListener('change', updateCategoryOptions);
 
-// 種別に応じたカテゴリーの切替
 function updateCategoryOptions() {
   const type = typeSelect.value;
   const categories = type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
@@ -36,8 +49,8 @@ function updateCategoryOptions() {
     .join('');
 }
 
-// データの追加処理
-form.addEventListener('submit', (e) => {
+// データ追加
+form.addEventListener('submit', async (e) => {
   e.preventDefault();
   
   const type = typeSelect.value;
@@ -58,24 +71,54 @@ form.addEventListener('submit', (e) => {
 
   transactions.unshift(newTransaction);
   saveAndRender();
-  
+
+  // GASへバックアップ送信
+  if (gasUrl) {
+    syncToGas({ action: 'add', data: newTransaction });
+  }
+
   document.getElementById('amount').value = '';
   document.getElementById('memo').value = '';
 });
 
-// 個別データの削除
 function deleteTransaction(id) {
+  const target = transactions.find(t => t.id === id);
   transactions = transactions.filter(t => t.id !== id);
   saveAndRender();
+
+  if (gasUrl && target) {
+    syncToGas({ action: 'delete', id: target.id });
+  }
 }
 
-// 永続化と画面更新
 function saveAndRender() {
   localStorage.setItem('kame_transactions', JSON.stringify(transactions));
   render();
 }
 
-// 再描画（計算・内訳・履歴）
+// Chart.js の初期化
+function initChart() {
+  const ctx = document.getElementById('income-chart').getContext('2d');
+  incomeChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: INCOME_CATEGORIES,
+      datasets: [{
+        data: [0, 0, 0, 0, 0],
+        backgroundColor: CHART_COLORS,
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      }
+    }
+  });
+}
+
 function render() {
   let totalIncome = 0;
   let totalExpense = 0;
@@ -96,20 +139,25 @@ function render() {
 
   const netBalance = totalIncome - totalExpense;
 
-  // 各金額の表示更新
   totalIncomeEl.textContent = `¥${totalIncome.toLocaleString()}`;
   totalExpenseEl.textContent = `¥${totalExpense.toLocaleString()}`;
   netBalanceEl.textContent = `¥${netBalance.toLocaleString()}`;
 
-  // 内訳の更新
-  categoryBreakdownEl.innerHTML = INCOME_CATEGORIES.map(cat => `
-    <div class="category-item">
+  // グラフ更新
+  if (incomeChart) {
+    incomeChart.data.datasets[0].data = INCOME_CATEGORIES.map(cat => categoryTotals[cat]);
+    incomeChart.update();
+  }
+
+  // 内訳更新
+  categoryBreakdownEl.innerHTML = INCOME_CATEGORIES.map((cat, index) => `
+    <div class="category-item" style="border-top: 3px solid ${CHART_COLORS[index]}">
       <span class="cat-name">${cat}</span>
       <span class="cat-amount">¥${categoryTotals[cat].toLocaleString()}</span>
     </div>
   `).join('');
 
-  // 履歴の更新
+  // 履歴更新
   historyListEl.innerHTML = transactions.map(t => `
     <li class="history-item">
       <div class="history-info">
@@ -127,7 +175,21 @@ function render() {
   `).join('');
 }
 
-// バックアップファイル（JSON）のダウンロード
+// GASへの自動同期送信関数
+async function syncToGas(payload) {
+  try {
+    await fetch(gasUrl, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+  } catch (err) {
+    console.error('GAS同期エラー:', err);
+  }
+}
+
+// JSON出力
 exportBtn.addEventListener('click', () => {
   const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(transactions, null, 2));
   const downloadAnchor = document.createElement('a');
@@ -138,7 +200,7 @@ exportBtn.addEventListener('click', () => {
   downloadAnchor.remove();
 });
 
-// JSONファイルからの復元
+// JSON復元
 importFileInput.addEventListener('change', (e) => {
   const file = e.target.files[0];
   if (!file) return;
@@ -151,6 +213,7 @@ importFileInput.addEventListener('change', (e) => {
         if (confirm('現在のデータを上書きして復元しますか？')) {
           transactions = importedData;
           saveAndRender();
+          if (gasUrl) syncToGas({ action: 'bulk', data: transactions });
           alert('データの復元が完了しました。');
         }
       } else {
@@ -163,13 +226,13 @@ importFileInput.addEventListener('change', (e) => {
   reader.readAsText(file);
 });
 
-// 全データのクリア
+// 全消去
 clearBtn.addEventListener('click', () => {
   if (confirm('すべての履歴を消去しますか？この操作は取り消せません。')) {
     transactions = [];
     saveAndRender();
+    if (gasUrl) syncToGas({ action: 'clear' });
   }
 });
 
-// アプリの起動
 init();
